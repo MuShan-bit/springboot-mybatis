@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.www.module.cascade.mapper.OrdersNewMapper">
+
+    <sql id="Orders_Base_Column_List">
+        <!--@sql select -->`orders`.`id` as oid, `orders`.`ordersn`<!--@sql from orders -->
+    </sql>
+
+    <resultMap id="AllOrdersAndProducts" type="com.example.www.module.cascade.model.po.OrdersNew">
+        <id column="oid" property="id"/>
+        <result column="ordersn" property="ordersn"/>
+        <collection property="products" ofType="com.example.www.module.cascade.model.po.Product">
+            <id column="pid" property="id"/>
+            <result column="name" property="name"/>
+            <result column="price" property="price"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectAllOrdersAndProduct" resultMap="AllOrdersAndProducts">
+        select <include refid="Orders_Base_Column_List"/>, `product`.id as pid,
+                `product`.`name`, `product`.`price`
+        from `orders`, `orders_detail`, `product`
+        where `orders_detail`.`orders_id` = `orders`.`id` and `orders_detail`.`product_id` = `product`.`id`
+    </select>
+</mapper>

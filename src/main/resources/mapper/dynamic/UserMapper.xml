@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.www.module.dynamic.mapper.UserMapper">
+    <!--sql语句片段，用来替换sql代码段，减少代码复用，常用于填充列名-->
+    <sql id="User_Base_Column_List">
+        <!--@sql select -->`user`.`id`, `user`.`username`, `user`.`password`, `user`.`nickname`, `user`.`email`, `user`.`gmt_create`<!--@sql from user -->
+    </sql>
+
+    <!--IF标签可以根据条件动态填充sql语句，因此我们可以直接使用User类作为参数，判断内部值是否存在
+        如果存在则根据其值查询，如不存在则跳过其进行查询-->
+    <select id="selectUserByIf" resultType="com.example.www.module.dynamic.model.po.User" parameterType="com.example.www.module.dynamic.model.po.User">
+        select <include refid="User_Base_Column_List" />
+        from user
+        where 1 = 1
+        <if test="username != null and username != ''">
+            and username like concat('%', #{username,jdbcType=VARCHAR}, '%')
+        </if>
+        <if test="nickname != null and nickname != ''">
+            and nickname like concat('%', #{nickname,jdbcType=VARCHAR}, '%')
+        </if>
+        <if test="email != null and email != ''">
+            and email = #{email}
+        </if>
+    </select>
+
+    <!--choose,when,otherwise(已被删除)字段组合，类似java中的switch语句,实现内容与if相同-->
+    <select id="selectUserByChoose" resultType="com.example.www.module.dynamic.model.po.User" parameterType="com.example.www.module.dynamic.model.po.User">
+        select <include refid="User_Base_Column_List"/>
+        from user
+        where 1=1
+        <choose>
+            <when test="username != null and username != ''">
+                and username like concat('%', #{username,jdbcType=VARCHAR}, '%')
+            </when>
+            <when test="nickname != null and nickname != ''">
+                and nickname like concat('%', #{nickname,jdbcType=VARCHAR}, '%')
+            </when>
+            <when test="email != null and email != ''">
+                and email = #{email}
+            </when>
+        </choose>
+    </select>
+    <!--trim 可以通过 prefix和suffix补充前缀后缀，也可以通过prefixOverrides和suffixOverrides忽略前缀和后缀-->
+    <!--样例中if语句补充的sql中存在头and，但是第一个字段不应该存在and，可以使用prefixOverrides忽略-->
+    <select id="selectUserByTrim" resultType="com.example.www.module.dynamic.model.po.User" parameterType="com.example.www.module.dynamic.model.po.User">
+        select <include refid="User_Base_Column_List"/>
+        from user
+        <trim prefix="where" prefixOverrides="and | or">
+            <if test="username != null and username != ''">
+                and username like concat('%', #{username,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="nickname != null and nickname != ''">
+                and nickname like concat('%', #{nickname,jdbcType=VARCHAR}, '%')
+            </if>
+        </trim>
+    </select>
+
+    <!--where标签可以只能的处理where语句，会自动忽略开头出现的and和or-->
+    <select id="selectUserByWhere" resultType="com.example.www.module.dynamic.model.po.User" parameterType="com.example.www.module.dynamic.model.po.User">
+        select <include refid="User_Base_Column_List"/>
+        from user
+        <where>
+            <if test="username != null and username != ''">
+                and username like concat('%', #{username,jdbcType=VARCHAR}, '%')
+            </if>
+            <if test="nickname != null and nickname != ''">
+                and nickname like concat('%', #{nickname,jdbcType=VARCHAR}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!--update可以动态修改需要更新的内容-->
+    <update id="updateUserBySet" parameterType="com.example.www.module.dynamic.model.po.User">
+        update user
+        <set>
+            <if test="username != null and username != ''">username = #{username,jdbcType=VARCHAR},</if>
+            <if test="email != null and email != ''">email=#{email,jdbcType=VARCHAR}</if>
+        </set>
+        where id = #{id}
+    </update>
+    <!--foreach 主要用于构建 in条件，
+        主要属性：item（别名），index（指定名字表示迭代到的位置），open（开始），separator（分隔），close（关闭）
+        collection：表示参数类型
+            单个参数且类型是List，则填写list
+            单个参数且类型是array数组，则填写array
+            多个参数，需封装为map
+                map中key为参数名，collection的属性值是传入的list或array对象在自己封装的Map中的key-->
+    <select id="selectUserByForEach" resultType="com.example.www.module.dynamic.model.po.User" parameterType="List">
+        select <include refid="User_Base_Column_List"/>
+        from user where id in
+        <foreach collection="list" index="index" item="item"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!--对于模糊查询，${}不能防止sql注入，如果想要拼接字符串，mysql的concat函数，Oracle连接符号‘||’
+        各不相同，不易于代码移植，bind标签可以很好的解决这个问题-->
+    <select id="selectUserByBind" resultType="com.example.www.module.dynamic.model.po.User"
+        parameterType="com.example.www.module.dynamic.model.po.User">
+        <bind name="param_username" value="'%' + username + '%'"/>
+        select <include refid="User_Base_Column_List" />
+        from user
+        where username like #{param_username}
+    </select>
+</mapper>

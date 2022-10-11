@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.www.module.cascade.mapper.UserMapper">
+    <!--sql语句片段，用来替换sql代码段，减少代码复用，常用于填充列名-->
+    <sql id="User_Base_Column_List">
+        <!--@sql select -->`user`.`id`, `user`.`username`, `user`.`password`, `user`.`nickname`, `user`.`email`, `user`.`gmt_create`<!--@sql from user -->
+    </sql>
+    <!--一对多 级联查询方法一（嵌套查询）-->
+    <resultMap id="UserAndOrders01" type="com.example.www.module.cascade.model.po.User">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="nickname" jdbcType="VARCHAR" property="nickname"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="gmt_create" jdbcType="TIMESTAMP" property="gmtCreate"/>
+        <collection property="ordersList" ofType="com.example.www.module.cascade.model.po.Orders"
+                    column="id" select="com.example.www.module.cascade.mapper.OrdersMapper.selectOrdersByUserId"/>
+    </resultMap>
+
+    <select id="selectUserOrdersById1" resultMap="UserAndOrders01" parameterType="Long">
+        select <include refid="User_Base_Column_List"/>
+        from user where id = #{id}
+    </select>
+
+    <!--一对多 级联查询方法二（嵌套结果）-->
+    <resultMap id="userAndOrders02" type="com.example.www.module.cascade.model.po.User">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="nickname" jdbcType="VARCHAR" property="nickname"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="gmt_create" jdbcType="TIMESTAMP" property="gmtCreate"/>
+        <collection property="ordersList" ofType="com.example.www.module.cascade.model.po.Orders">
+            <id property="id" column="id"/>
+            <result property="ordersn" column="ordersn"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectUserOrdersById2" resultMap="userAndOrders02" parameterType="Long">
+        select <include refid="User_Base_Column_List"/>,orders.id,orders.ordersn
+        from `user`, `orders`
+        where `user`.id = orders.user_id and `user`.id = #{id}
+    </select>
+
+    <!--一对多 根据userid 查询用户及其关联的订单信息：连接查询（使用pojo存储结果）-->
+    <select id="selectUserOrderById3" parameterType="Long"
+            resultType="com.example.www.module.cascade.model.pojo.SelectUserOrdersById">
+        select <include refid="User_Base_Column_List"/>,orders.id,orders.ordersn
+        from `user`, `orders`
+        where `user`.id = orders.user_id and `user`.id = #{id}
+    </select>
+
+</mapper>

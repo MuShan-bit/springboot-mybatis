@@ -1,0 +1,29 @@
+server:
+    tomcat:
+        uri-encoding: UTF-8
+    port: 8080
+#切换配置
+spring:
+    profiles:
+        active: dev
+---
+spring:
+    datasource:
+        username: root
+        password: mushan
+        url: jdbc:mysql://localhost:3306/springboot_mybatis
+        driver-class-name: com.mysql.cj.jdbc.Driver
+mybatis:
+    # 指定 mapper.xml 的位置
+    mapper-locations: classpath:mapper/**/*.xml
+    #扫描实体类的位置,在此处指明扫描实体类的包，在 mapper.xml 中就可以不写实体类的全路径名
+    type-aliases-package: xyz.mushan.www.module.*
+    configuration:
+        #默认开启驼峰命名法，可以不用设置该属性
+        map-underscore-to-camel-case: true
+        #打印sql
+        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+        #开启懒加载(在使用mybatis嵌套查询时，使用mybatis的延迟加载可以一定程度的提高查询效率)
+        lazy-loading-enabled: true
+        #将积极加载改为按需加载
+        aggressive-lazy-loading: false

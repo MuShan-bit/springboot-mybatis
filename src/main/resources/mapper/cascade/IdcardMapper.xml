@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.www.module.cascade.mapper.IdcardMapper">
+
+    <resultMap id="IdcardBaseResultMap" type="com.example.www.module.cascade.model.po.Idcard">
+        <id column="id" property="id" jdbcType="BIGINT" javaType="Long"/>
+        <result column="code" property="code" jdbcType="VARCHAR" javaType="String"/>
+    </resultMap>
+
+    <!--sql语句片段，用来替换sql代码段，减少代码复用，常用于填充列名-->
+    <sql id="Idcard_Base_Column_List">
+        <!--@sql select -->`id`, `code`<!--@sql from idcard -->
+    </sql>
+
+    <select id="selectCodeById" resultMap="IdcardBaseResultMap">
+        select <include refid="Idcard_Base_Column_List"/>
+        from idcard
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+</mapper>

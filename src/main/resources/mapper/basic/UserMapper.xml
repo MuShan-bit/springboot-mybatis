@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.www.module.basic.mapper.UserMapper">
+    <resultMap id="UserBaseResultMap" type="com.example.www.module.basic.model.po.User">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="username" jdbcType="VARCHAR" property="username"/>
+        <result column="password" jdbcType="VARCHAR" property="password"/>
+        <result column="nickname" jdbcType="VARCHAR" property="nickname"/>
+        <result column="email" jdbcType="VARCHAR" property="email"/>
+        <result column="gmt_create" jdbcType="TIMESTAMP" property="gmtCreate"/>
+    </resultMap>
+    <!--sql语句片段，用来替换sql代码段，减少代码复用，常用于填充列名-->
+    <sql id="User_Base_Column_List">
+        <!--@sql select -->`id`, `username`, `password`, `nickname`, `email`, `gmt_create`<!--@sql from user -->
+    </sql>
+
+    <!--resultType 为返回类型-->
+    <select id="getUserById" resultType="com.example.www.module.basic.model.po.User">
+        <!--include 导入sql片段，与<sql>标签配套使用-->
+        select <include refid="User_Base_Column_List" />
+        from user
+        where user.id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <!--设置好resultMap映射后，可以使用resultMap作为返回类型-->
+    <!--parameterType表示参数类型，多个参数时允许使用map作为参数，键对应参数名，值对应参数值-->
+    <select id="getUserByEmailAndUsername" resultMap="UserBaseResultMap" parameterType="map">
+        select <include refid="User_Base_Column_List" />
+        from user
+        where user.email = #{email}
+        and user.username = #{username}
+    </select>
+
+    <!--多参数时，也可以使用实体类的形式传递参数-->
+    <select id="getUserByUsernameAndPassword" resultMap="UserBaseResultMap" parameterType="com.example.www.module.basic.model.dto.LoginParam">
+        select <include refid="User_Base_Column_List" />
+        from user
+        where user.username = #{username,jdbcType=VARCHAR}
+        and user.password = #{password,jdbcType=VARCHAR}
+    </select>
+
+    <!--concat拼接字符串，%为mysql中模糊查询语法-->
+    <select id="getUserListByLikeNickname" resultMap="UserBaseResultMap">
+        select <include refid="User_Base_Column_List"/>
+        from user
+        where user.nickname like concat('%', #{nickname,jdbcType=VARCHAR}, '%')
+    </select>
+
+    <!--插入user，当主键sql设置为自增时，如果主键参数为空，自动回填自增-->
+    <insert id="addUser" parameterType="com.example.www.module.basic.model.po.User"
+            keyProperty="id" useGeneratedKeys="true">
+        insert into `user`(<include refid="User_Base_Column_List"/>)
+        values(#{id},#{username},#{nickname},#{password},#{email},#{gmtCreate})
+    </insert>
+
+    <delete id="deleteUserById" parameterType="Long">
+        delete from user where id = #{id}
+    </delete>
+
+    <update id="updateUserPasswordById" parameterType="com.example.www.module.basic.model.po.User">
+        update user set password = #{password,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>
